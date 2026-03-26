@@ -8,7 +8,6 @@ namespace KlasUitwerking
     class PlayerHand
     {
         List<Card> Hand;
-        //int MaxCards;
         List<int> SelectedIndexes;
 
         public IEnumerable<Card> CardsInHand => this.Hand;
@@ -77,6 +76,18 @@ namespace KlasUitwerking
             .ToList();
 
             this.SelectedIndexes.Clear();
+        }
+
+        // Calculate total hand score: sum of card values plus any bonus points
+        public int CalculateScore()
+        {
+            int total = 0;
+            foreach (var card in this.Hand)
+            {
+                total += (int)card.Value;
+                total += card.GetBonusPoints();
+            }
+            return total;
         }
     }
 }

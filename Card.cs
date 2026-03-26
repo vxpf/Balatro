@@ -23,5 +23,11 @@ namespace KlasUitwerking
         {
             return this.Suit.ToString() + " " + this.Value.ToString();
         }
+
+        
+        public virtual int GetBonusPoints()
+        {
+            return 0;
+        }
     }
 }

@@ -11,6 +11,7 @@ namespace KlasUitwerking
         private int DeckCardsTotal, DeckCardsRemaining = 0;
         private IEnumerable<Card> CardsInHand = new List<Card>();
         private IEnumerable<int> SelectedCards = new List<int>();
+        private int Cursor = 0;
         public ViewModel(Model model)
         {
             this.Model = model;
@@ -22,6 +23,16 @@ namespace KlasUitwerking
             this.DeckCardsRemaining = this.Model.Deck.CardsRemainingCount;
             this.CardsInHand = this.Model.PlayerHand.CardsInHand;
             this.SelectedCards = this.Model.PlayerHand.SelectedCards;
+            // Ensure cursor remains within range
+            int count = this.CardsInHand.Count();
+            if (count == 0)
+            {
+                this.Cursor = 0;
+            }
+            else if (this.Cursor >= count)
+            {
+                this.Cursor = count - 1;
+            }
         }
 
         public void RenderUI()
@@ -36,6 +47,16 @@ namespace KlasUitwerking
             for (int i = 0; i < this.CardsInHand.Count(); i++)
             {
                 Card card = this.CardsInHand.ElementAt(i);
+                // show cursor marker
+                if (i == this.Cursor)
+                {
+                    Console.Write(">");
+                }
+                else
+                {
+                    Console.Write(" ");
+                }
+
                 if (this.SelectedCards.Contains(i))
                 {
                     Console.Write("[x]");
@@ -44,6 +65,7 @@ namespace KlasUitwerking
                 {
                     Console.Write("[ ]");
                 }
+
                 Console.WriteLine(card.MakeAsString());
             }
         }
@@ -52,9 +74,36 @@ namespace KlasUitwerking
         {
             ConsoleKeyInfo key = Console.ReadKey();
 
-            if (key.Key == ConsoleKey.Enter)
+            // navigation with arrow keys
+            if (key.Key == ConsoleKey.LeftArrow || key.Key == ConsoleKey.UpArrow)
             {
-                this.SelectCard(0);
+                if (this.CardsInHand.Any())
+                {
+                    this.Cursor = (this.Cursor - 1 + this.CardsInHand.Count()) % this.CardsInHand.Count();
+                }
+            }
+            else if (key.Key == ConsoleKey.RightArrow || key.Key == ConsoleKey.DownArrow)
+            {
+                if (this.CardsInHand.Any())
+                {
+                    this.Cursor = (this.Cursor + 1) % this.CardsInHand.Count();
+                }
+            }
+            else if (key.Key == ConsoleKey.Enter)
+            {
+                // toggle selection at cursor
+                if (this.CardsInHand.Any())
+                {
+                    if (this.SelectedCards.Contains(this.Cursor))
+                    {
+                        this.Model.PlayerHand.DeselectCard(this.Cursor);
+                    }
+                    else
+                    {
+                        this.Model.PlayerHand.SelectCard(this.Cursor);
+                    }
+                    this.UpdateFromModel();
+                }
             }
         }
 
