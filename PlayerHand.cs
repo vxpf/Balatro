@@ -29,16 +29,16 @@ namespace KlasUitwerking
 
         public void SelectCard(int index)
         {
-            if (this.Hand.Count == 5)
+            // validate index
+            if (index < 0 || index >= this.Hand.Count)
             {
                 return;
             }
-            if (this.Hand.Count > index)
+
+            // add if not already selected
+            if (!this.SelectedIndexes.Contains(index))
             {
-                if (!this.SelectedIndexes.Contains(index))
-                {
-                    this.SelectedIndexes.Add(index);
-                }
+                this.SelectedIndexes.Add(index);
             }
         }
 
