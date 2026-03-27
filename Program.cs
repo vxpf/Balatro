@@ -7,9 +7,16 @@ namespace KlasUitwerking
         static void Main(string[] args)
         {
             Deck testDeck = new Deck();
+            // shuffle deck and deal a full hand
+            testDeck.Shuffle();
+
             PlayerHand hand = new PlayerHand(5);
-            hand.AddCard(testDeck.TakeCard());
-            hand.AddCard(testDeck.TakeCard());
+            for (int i = 0; i < hand.MaxCards; i++)
+            {
+                var card = testDeck.TakeCard();
+                if (card == null) break;
+                hand.AddCard(card);
+            }
 
             Model model = new Model(testDeck, hand);
 
