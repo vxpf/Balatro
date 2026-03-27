@@ -44,6 +44,9 @@ namespace KlasUitwerking
                 + "/"
                 + this.DeckCardsTotal.ToString());
 
+            // korte bedieningshint
+            Console.WriteLine("Controls: ←/→ of ↑/↓ bewegen, Enter selecteer/deselecteer, R of Space wissel geselecteerde");
+
             for (int i = 0; i < this.CardsInHand.Count(); i++)
             {
                 Card card = this.CardsInHand.ElementAt(i);
@@ -105,6 +108,10 @@ namespace KlasUitwerking
                     this.UpdateFromModel();
                 }
             }
+            else if (key.Key == ConsoleKey.R || key.Key == ConsoleKey.Spacebar)
+            {
+                this.ReplaceSelected();
+            }
         }
 
         public void Run()
@@ -121,6 +128,23 @@ namespace KlasUitwerking
         public void SelectCard(int index)
         {
             this.Model.PlayerHand.SelectCard(index);
+            this.UpdateFromModel();
+        }
+
+        // Wissel geselecteerde kaarten: verwijder geselecteerde en vul hand aan vanuit deck
+        public void ReplaceSelected()
+        {
+            // verwijder geselecteerde kaarten uit hand
+            this.Model.PlayerHand.RemoveSelected();
+
+            // trek kaarten totdat hand weer vol is of deck leeg
+            while (this.Model.PlayerHand.CardsInHand.Count() < this.Model.PlayerHand.MaxCards)
+            {
+                var drawn = this.Model.Deck.TakeCard();
+                if (drawn == null) break;
+                this.Model.PlayerHand.AddCard(drawn);
+            }
+
             this.UpdateFromModel();
         }
     }
