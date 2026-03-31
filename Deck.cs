@@ -24,11 +24,23 @@ namespace KlasUitwerking
             this.CardsRemaining = new List<Card>();
             this.CardsTaken = new List<Card>();
 
+            // maak een random generator: 10% kans op BonusCard
+            var rng = new Random();
             foreach (Suit suit in Enum.GetValues(typeof(Suit)))
             {
                 foreach (CardValue value in Enum.GetValues(typeof(CardValue)))
                 {
-                    Card card = new Card(value, suit);
+                    Card card;
+                    // 10% kans dat een kaart een BonusCard is
+                    if (rng.NextDouble() < 0.10)
+                    {
+                        card = new BonusCard(value, suit, 10);
+                    }
+                    else
+                    {
+                        card = new Card(value, suit);
+                    }
+
                     this.CardsRemaining.Add(card);
                     Console.WriteLine(card.Suit.ToString()
                         + " " + card.Value.ToString());
