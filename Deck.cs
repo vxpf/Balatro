@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace KlasUitwerking
@@ -9,7 +10,7 @@ namespace KlasUitwerking
         private List<Card> CardsRemaining;
         private List<Card> CardsTaken;
         //new
-        public int TotalCardCount
+        public virtual int TotalCardCount
         {
             get
             {
@@ -17,7 +18,7 @@ namespace KlasUitwerking
             }
         }
 
-        public int CardsRemainingCount => this.CardsRemaining.Count;
+        public virtual int CardsRemainingCount => this.CardsRemaining.Count;
         //oud
         public Deck()
         {
@@ -38,7 +39,7 @@ namespace KlasUitwerking
                     }
                     else
                     {
-                        card = new Card(value, suit);
+                        card = new RegularCard(value, suit);
                     }
 
                     this.CardsRemaining.Add(card);
@@ -48,11 +49,11 @@ namespace KlasUitwerking
             }
         }
 
-        public void AddCard(Card card)
+        public virtual void AddCard(Card card)
         {
             this.CardsRemaining.Add(card);
         }
-        public Card? TakeCard()
+        public virtual Card? TakeCard()
         {
             if (this.CardsRemaining.Count == 0)
             {
@@ -65,7 +66,7 @@ namespace KlasUitwerking
             return taken;
         }
 
-        public void Reset()
+        public virtual void Reset()
         {
             this.CardsRemaining =
                 this.CardsRemaining
@@ -74,7 +75,7 @@ namespace KlasUitwerking
             this.CardsTaken = new List<Card>();
         }
 
-        public void Shuffle()
+        public virtual void Shuffle()
         {
             this.CardsRemaining = this.CardsRemaining.Shuffle().ToList();
         }
