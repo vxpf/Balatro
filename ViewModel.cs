@@ -11,7 +11,17 @@ namespace KlasUitwerking
         private int DeckCardsTotal, DeckCardsRemaining = 0;
         private IEnumerable<Card> CardsInHand = new List<Card>();
         private IEnumerable<int> SelectedCards = new List<int>();
-        private int Cursor = 0;
+        public int Cursor { get; private set; } = 0;
+
+        // view-facing properties
+        public int DeckTotal => this.DeckCardsTotal;
+        public int DeckRemaining => this.DeckCardsRemaining;
+        public int Score => this.Model.PlayerHand.CalculateScore();
+        public IEnumerable<Card> CardsInHandPublic => this.CardsInHand;
+        public IEnumerable<int> SelectedCardsPublic => this.SelectedCards;
+        private string Status = string.Empty;
+        public string StatusPublic => this.Status;
+        private bool Running = false;
         public ViewModel(Model model)
         {
             this.Model = model;
@@ -33,93 +43,52 @@ namespace KlasUitwerking
             {
                 this.Cursor = count - 1;
             }
+
+            // Safety: als hand minder kaarten heeft dan MaxCards, vul automatisch aan vanuit deck
+            int desired = this.Model.PlayerHand.MaxCards;
+            while (this.Model.PlayerHand.CardsInHand.Count() < desired)
+            {
+                var drawn = this.Model.Deck.TakeCard();
+                if (drawn == null) break;
+                this.Model.PlayerHand.AddCard(drawn);
+            }
+
+            // refresh local view of hand/count after fill
+            this.CardsInHand = this.Model.PlayerHand.CardsInHand;
+            this.SelectedCards = this.Model.PlayerHand.SelectedCards;
+        }
+        // View-agnostic control methods for a ConsoleView or other view
+        public void MoveCursorLeft()
+        {
+            if (this.CardsInHand.Any())
+            {
+                this.Cursor = (this.Cursor - 1 + this.CardsInHand.Count()) % this.CardsInHand.Count();
+            }
         }
 
-        public void RenderUI()
+        public void MoveCursorRight()
         {
-            Console.Clear();
-
-            Console.WriteLine("Deck: "
-                + this.DeckCardsRemaining.ToString()
-                + "/"
-                + this.DeckCardsTotal.ToString());
-
-            // korte bedieningshint
-            Console.WriteLine("Controls: ←/→ of ↑/↓ bewegen, Enter selecteer/deselecteer, R of Space wissel geselecteerde");
-
-            for (int i = 0; i < this.CardsInHand.Count(); i++)
+            if (this.CardsInHand.Any())
             {
-                Card card = this.CardsInHand.ElementAt(i);
-                // show cursor marker
-                if (i == this.Cursor)
+                this.Cursor = (this.Cursor + 1) % this.CardsInHand.Count();
+            }
+        }
+
+        public void ToggleSelectAtCursor()
+        {
+            if (this.CardsInHand.Any())
+            {
+                if (this.SelectedCards.Contains(this.Cursor))
                 {
-                    Console.Write(">");
+                    this.Model.PlayerHand.DeselectCard(this.Cursor);
+                    this.Status = $"Gedeselecteerd kaart {this.Cursor + 1}.";
                 }
                 else
                 {
-                    Console.Write(" ");
+                    this.Model.PlayerHand.SelectCard(this.Cursor);
+                    this.Status = $"Geselecteerd kaart {this.Cursor + 1}.";
                 }
-
-                if (this.SelectedCards.Contains(i))
-                {
-                    Console.Write("[x]");
-                }
-                else
-                {
-                    Console.Write("[ ]");
-                }
-
-                Console.WriteLine(card.MakeAsString());
-            }
-        }
-
-        public void HandleUserInput()
-        {
-            ConsoleKeyInfo key = Console.ReadKey();
-
-            // navigation with arrow keys
-            if (key.Key == ConsoleKey.LeftArrow || key.Key == ConsoleKey.UpArrow)
-            {
-                if (this.CardsInHand.Any())
-                {
-                    this.Cursor = (this.Cursor - 1 + this.CardsInHand.Count()) % this.CardsInHand.Count();
-                }
-            }
-            else if (key.Key == ConsoleKey.RightArrow || key.Key == ConsoleKey.DownArrow)
-            {
-                if (this.CardsInHand.Any())
-                {
-                    this.Cursor = (this.Cursor + 1) % this.CardsInHand.Count();
-                }
-            }
-            else if (key.Key == ConsoleKey.Enter)
-            {
-                // toggle selection at cursor
-                if (this.CardsInHand.Any())
-                {
-                    if (this.SelectedCards.Contains(this.Cursor))
-                    {
-                        this.Model.PlayerHand.DeselectCard(this.Cursor);
-                    }
-                    else
-                    {
-                        this.Model.PlayerHand.SelectCard(this.Cursor);
-                    }
-                    this.UpdateFromModel();
-                }
-            }
-            else if (key.Key == ConsoleKey.R || key.Key == ConsoleKey.Spacebar)
-            {
-                this.ReplaceSelected();
-            }
-        }
-
-        public void Run()
-        {
-            while (true)
-            {
-                this.RenderUI();
-                this.HandleUserInput();
+                this.UpdateFromModel();
             }
         }
 
@@ -137,12 +106,32 @@ namespace KlasUitwerking
             // verwijder geselecteerde kaarten uit hand
             this.Model.PlayerHand.RemoveSelected();
 
+            this.Status = "Geselecteerde kaarten gewisseld.";
+
             // trek kaarten totdat hand weer vol is of deck leeg
             while (this.Model.PlayerHand.CardsInHand.Count() < this.Model.PlayerHand.MaxCards)
             {
                 var drawn = this.Model.Deck.TakeCard();
                 if (drawn == null) break;
                 this.Model.PlayerHand.AddCard(drawn);
+            }
+
+            this.UpdateFromModel();
+        }
+
+        // request to start a new hand: reset deck, shuffle and deal
+        public void DealNewHand()
+        {
+            this.Model.Deck.Reset();
+            this.Model.Deck.Shuffle();
+
+            // clear current hand and deal
+            this.Model.PlayerHand = new PlayerHand(this.Model.PlayerHand.MaxCards);
+            for (int i = 0; i < this.Model.PlayerHand.MaxCards; i++)
+            {
+                var c = this.Model.Deck.TakeCard();
+                if (c == null) break;
+                this.Model.PlayerHand.AddCard(c);
             }
 
             this.UpdateFromModel();
