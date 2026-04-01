@@ -57,7 +57,86 @@ namespace KlasUitwerking
             this.CardsInHand = this.Model.PlayerHand.CardsInHand;
             this.SelectedCards = this.Model.PlayerHand.SelectedCards;
         }
-        // View-agnostic control methods for a ConsoleView or other view
+        // Simple console view integrated in ViewModel (teacher prefers ViewModel-only)
+        public void Run()
+        {
+            this.Running = true;
+            while (this.Running)
+            {
+                RenderUI();
+                HandleUserInput();
+            }
+        }
+
+        public void RenderUI()
+        {
+            Console.Clear();
+            Console.WriteLine("Deck: " + this.DeckRemaining + "/" + this.DeckTotal + "    " + "Score: " + this.Score);
+            // toon status en wildcard telling
+            int wildInHand = this.CardsInHand.Count(c => c is WildcardCard);
+            int wildInDeck = this.Model.Deck.CountWildcardsRemaining();
+            Console.WriteLine(this.StatusPublic + "    Wildcards hand:" + wildInHand + " Deck:" + wildInDeck);
+            Console.WriteLine("Controls: ←/→ bewegen, Enter selecteer/deselecteer, R wissel, N nieuwe hand, Q stop");
+
+            var cards = this.CardsInHand.ToList();
+            var selected = this.SelectedCards.ToList();
+
+            for (int i = 0; i < cards.Count; i++)
+            {
+                // toon index (1-based) voor duidelijkheid
+                string idx = (i + 1).ToString().PadLeft(2, ' ');
+                string marker = (i == this.Cursor) ? ">" : " ";
+                string sel = selected.Contains(i) ? "[x]" : "[ ]";
+                var card = cards[i];
+                string text = card.MakeAsString();
+                if (card is WildcardCard)
+                {
+                    text += " [W]"; // eenvoudige markering voor wildcard
+                }
+                else if (card.GetBonusPoints() > 0)
+                {
+                    text += " [B]";
+                }
+                Console.WriteLine($"{idx} {marker}{sel} {text}");
+            }
+        }
+
+        public void HandleUserInput()
+        {
+            var key = Console.ReadKey(true);
+            if (key.Key == ConsoleKey.LeftArrow || key.Key == ConsoleKey.UpArrow)
+            {
+                this.MoveCursorLeft();
+            }
+            else if (key.Key == ConsoleKey.RightArrow || key.Key == ConsoleKey.DownArrow)
+            {
+                this.MoveCursorRight();
+            }
+            else if (key.Key == ConsoleKey.Enter)
+            {
+                this.ToggleSelectAtCursor();
+            }
+            else if (key.Key == ConsoleKey.R || key.Key == ConsoleKey.Spacebar)
+            {
+                this.ReplaceSelected();
+            }
+            else if (key.Key == ConsoleKey.N)
+            {
+                this.DealNewHand();
+            }
+            else if (key.Key == ConsoleKey.Q)
+            {
+                Console.Write("Weet je zeker dat je wilt stoppen? (y/n): ");
+                while (true)
+                {
+                    var k = Console.ReadKey(true);
+                    if (k.Key == ConsoleKey.Y) { this.Running = false; break; }
+                    if (k.Key == ConsoleKey.N) { break; }
+                }
+            }
+        }
+
+        // View-agnostic control methods
         public void MoveCursorLeft()
         {
             if (this.CardsInHand.Any())

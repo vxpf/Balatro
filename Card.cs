@@ -4,7 +4,7 @@ using System.Text;
 
 namespace KlasUitwerking
 {
-    class Card
+    abstract class Card
     {
         public CardValue Value;
         public Suit Suit;
@@ -12,14 +12,15 @@ namespace KlasUitwerking
         {
             this.Value = startValue;
             this.Suit = startSuit;
-        }
+        }   
 
         public void PrintMe()
         {
             Console.WriteLine(this.Value);
         }
 
-        public string MakeAsString()
+        // representatie als string; kan overschreven worden door afgeleide kaarten
+        public virtual string MakeAsString()
         {
             return this.Suit.ToString() + " " + this.Value.ToString();
         }
@@ -28,6 +29,18 @@ namespace KlasUitwerking
         public virtual int GetBonusPoints()
         {
             return 0;
+        }
+
+        // Basis punten voor de kaart (kan overschreven worden voor speciale kaarten)
+        public virtual int GetBasePoints()
+        {
+            return (int)this.Value;
+        }
+
+        // Totale score van de kaart: basispunten + eventuele bonuspunten
+        public virtual int GetScore()
+        {
+            return this.GetBasePoints() + this.GetBonusPoints();
         }
     }
 }

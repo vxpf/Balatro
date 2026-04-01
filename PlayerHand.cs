@@ -81,13 +81,43 @@ namespace KlasUitwerking
         // Calculate total hand score: sum of card values plus any bonus points
         public int CalculateScore()
         {
-            int total = 0;
-            foreach (var card in this.Hand)
+            // if we have at least 5 cards, evaluate all 5-card combinations and return the best score
+            var cards = this.Hand.ToList();
+            if (cards.Count >= 5)
             {
-                total += (int)card.Value;
-                total += card.GetBonusPoints();
+                int best = int.MinValue;
+                foreach (var combo in GetCombinations(cards, 5))
+                {
+                    int s = combo.Sum(c => c.GetScore());
+                    s += FlushChecker.GetFlushBonus(combo);
+                    if (s > best) best = s;
+                }
+                return best == int.MinValue ? 0 : best;
             }
+
+            // otherwise sum all card scores and possible flush bonus
+            int total = cards.Sum(c => c.GetScore());
+            total += FlushChecker.GetFlushBonus(cards);
             return total;
+        }
+
+        // helper: generate all k-combinations of a list
+        private static IEnumerable<List<Card>> GetCombinations(List<Card> list, int k)
+        {
+            int n = list.Count;
+            if (k > n || k <= 0) yield break;
+            int[] indices = Enumerable.Range(0, k).ToArray();
+            while (true)
+            {
+                var combo = indices.Select(i => list[i]).ToList();
+                yield return combo;
+
+                int pos = k - 1;
+                while (pos >= 0 && indices[pos] == pos + n - k) pos--;
+                if (pos < 0) break;
+                indices[pos]++;
+                for (int i = pos + 1; i < k; i++) indices[i] = indices[i - 1] + 1;
+            }
         }
     }
 }

@@ -10,7 +10,8 @@ namespace KlasUitwerking
             // shuffle deck and deal a full hand
             testDeck.Shuffle();
 
-            PlayerHand hand = new PlayerHand(5);
+            // speler heeft nu 8 kaarten in de hand
+            PlayerHand hand = new PlayerHand(8);
             for (int i = 0; i < hand.MaxCards; i++)
             {
                 var card = testDeck.TakeCard();
@@ -23,6 +24,7 @@ namespace KlasUitwerking
             ViewModel viewModel = new ViewModel(model);
             viewModel.UpdateFromModel();
 
+            // start the ViewModel which now handles console I/O
             viewModel.Run();
         }
     }

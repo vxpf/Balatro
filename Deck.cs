@@ -25,16 +25,23 @@ namespace KlasUitwerking
             this.CardsRemaining = new List<Card>();
             this.CardsTaken = new List<Card>();
 
-            // maak een random generator: 10% kans op BonusCard
+            // maak een random generator: 5% kans op Wildcard, 10% kans op BonusCard
             var rng = new Random();
             foreach (Suit suit in Enum.GetValues(typeof(Suit)))
             {
                 foreach (CardValue value in Enum.GetValues(typeof(CardValue)))
                 {
                     Card card;
-                    // 10% kans dat een kaart een BonusCard is
-                    if (rng.NextDouble() < 0.10)
+                    // bepaal type met één random getal (exclusieve kansen)
+                    double rnd = rng.NextDouble();
+                    if (rnd < 0.05)
                     {
+                        // 5% kans op wildcard
+                        card = new WildcardCard();
+                    }
+                    else if (rnd < 0.15)
+                    {
+                        // volgende 10% kans op bonus
                         card = new BonusCard(value, suit, 10);
                     }
                     else
@@ -43,8 +50,8 @@ namespace KlasUitwerking
                     }
 
                     this.CardsRemaining.Add(card);
-                    Console.WriteLine(card.Suit.ToString()
-                        + " " + card.Value.ToString());
+                    // gebruik MakeAsString zodat Wildcard correct getoond wordt
+                    Console.WriteLine(card.MakeAsString());
                 }
             }
         }
@@ -73,6 +80,12 @@ namespace KlasUitwerking
                 .Concat(this.CardsTaken)
                 .ToList();
             this.CardsTaken = new List<Card>();
+        }
+
+        // Count wildcards remaining in the deck
+        public int CountWildcardsRemaining()
+        {
+            return this.CardsRemaining.Count(c => c is WildcardCard);
         }
 
         public virtual void Shuffle()
