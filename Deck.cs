@@ -27,7 +27,9 @@ namespace KlasUitwerking
 
             // maak een random generator: 5% kans op Wildcard, 10% kans op BonusCard
             var rng = new Random();
-            foreach (Suit suit in Enum.GetValues(typeof(Suit)))
+            // expliciete lijst van de vier geldige suits — voorkomt Suit.None in deck
+            var suits = new[] { Suit.Clubs, Suit.Diamonds, Suit.Hearts, Suit.Spades };
+            foreach (Suit suit in suits)
             {
                 foreach (CardValue value in Enum.GetValues(typeof(CardValue)))
                 {
@@ -36,7 +38,7 @@ namespace KlasUitwerking
                     double rnd = rng.NextDouble();
                     if (rnd < 0.05)
                     {
-                        // 5% kans op wildcard
+                        // 5% kans op wildcard (vervangt deze kaartpositie)
                         card = new WildcardCard();
                     }
                     else if (rnd < 0.15)
@@ -44,13 +46,18 @@ namespace KlasUitwerking
                         // volgende 10% kans op bonus
                         card = new BonusCard(value, suit, 10);
                     }
+                    else if (rnd < 0.20)
+                    {
+                        // volgende 5% kans op glazen kaart
+                        card = new GlassCard(value, suit, multiplier: 2.0, breakChance: 0.2);
+                    }
                     else
                     {
                         card = new RegularCard(value, suit);
                     }
 
                     this.CardsRemaining.Add(card);
-                    // gebruik MakeAsString zodat Wildcard correct getoond wordt
+                    // gebruik MakeAsString zodat speciale kaarten correct getoond worden
                     Console.WriteLine(card.MakeAsString());
                 }
             }

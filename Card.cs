@@ -25,6 +25,12 @@ namespace KlasUitwerking
             return this.Suit.ToString() + " " + this.Value.ToString();
         }
 
+        // Geef aan of deze kaart bij een bepaalde suit past (wildcard past altijd)
+        public virtual bool MatchesSuit(Suit s)
+        {
+            return this.Suit == s;
+        }
+
         
         public virtual int GetBonusPoints()
         {

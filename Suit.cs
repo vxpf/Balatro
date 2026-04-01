@@ -6,6 +6,7 @@ namespace KlasUitwerking
 {
     enum Suit
     {
+        None,
         Clubs,
         Diamonds,
         Hearts,

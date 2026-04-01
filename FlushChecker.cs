@@ -16,18 +16,17 @@ namespace KlasUitwerking
             if (list.Count == 0) return 0;
 
             // Treat WildcardCard as matching any suit: if card is WildcardCard, ignore its suit
-            var nonWildcard = list.Where(c => !(c is WildcardCard)).ToList();
-            if (nonWildcard.Count == 0)
+            // gebruik MatchesSuit zodat wildcard-regel centraal blijft
+            var nonWild = list.Where(c => !(c is WildcardCard)).ToList();
+            if (nonWild.Count == 0)
             {
-                // only wildcards -> treat as flush
-                return 50;
+                return 50; // alleen wildcards
             }
 
-            var firstSuit = nonWildcard.First().Suit;
-            bool allSame = nonWildcard.All(c => c.Suit == firstSuit);
-            if (allSame)
+            var target = nonWild.First().Suit;
+            bool allMatch = list.All(c => c.MatchesSuit(target));
+            if (allMatch)
             {
-                // eenvoudige vaste bonus voor flush
                 return 50;
             }
             return 0;

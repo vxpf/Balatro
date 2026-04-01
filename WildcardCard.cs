@@ -12,7 +12,7 @@ namespace KlasUitwerking
     class WildcardCard : Card
     {
         public WildcardCard()
-            : base(CardValue.Two, Suit.Clubs) // tijdelijke waarden; suit/value niet relevant voor wildcard
+            : base(CardValue.Two, Suit.None) // wildcard heeft geen echte suit
         {
         }
 
@@ -29,6 +29,11 @@ namespace KlasUitwerking
         public override string MakeAsString()
         {
             return "Wildcard";
+        }
+
+        public override bool MatchesSuit(Suit s)
+        {
+            return true; // wildcard past altijd bij elke suit
         }
     }
 }
