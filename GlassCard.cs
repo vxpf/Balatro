@@ -26,7 +26,7 @@ namespace KlasUitwerking
 
         public override string MakeAsString()
         {
-            return $"Glass {this.Suit} {this.Value} x{this.multiplier}";
+            return $"Glass {RankString()}{SuitSymbol()} x{this.multiplier}";
         }
     }
 }

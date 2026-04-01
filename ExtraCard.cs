@@ -19,7 +19,7 @@ namespace KlasUitwerking
 
         public override string MakeAsString()
         {
-            return $"Extra {this.Suit} {this.Value} +{this.pointsPerMatch}/match";
+            return $"Extra {RankString()}{SuitSymbol()} +{this.pointsPerMatch}/match";
         }
 
         // Context-aware bonus: telt het aantal andere kaarten in the hand with

@@ -6,6 +6,10 @@ namespace KlasUitwerking
     {
         static void Main(string[] args)
         {
+            // Ensure console uses UTF-8 so suit symbols (♣ ♦ ♥ ♠) render correctly
+            System.Console.OutputEncoding = System.Text.Encoding.UTF8;
+            System.Console.InputEncoding = System.Text.Encoding.UTF8;
+
             Deck testDeck = new Deck();
             // shuffle deck and deal a full hand
             testDeck.Shuffle();
