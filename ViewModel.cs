@@ -72,12 +72,12 @@ namespace KlasUitwerking
         public void RenderUI()
         {
             Console.Clear();
-            Console.WriteLine("Deck: " + this.DeckRemaining + "/" + this.DeckTotal + "    " + "Score: " + this.Score);
+            Console.WriteLine($"Deck: {this.DeckRemaining}/{this.DeckTotal}    Handscore: {this.Score}    Total: {this.Model.TotalScore}");
             // toon status en wildcard telling
             int wildInHand = this.CardsInHand.Count(c => c is WildcardCard);
             int wildInDeck = this.Model.Deck.CountWildcardsRemaining();
             Console.WriteLine(this.StatusPublic + "    Wildcards hand:" + wildInHand + " Deck:" + wildInDeck);
-            Console.WriteLine("Controls: ←/→ bewegen, Enter selecteer/deselecteer, R wissel, N nieuwe hand, Q stop");
+            Console.WriteLine("Controls: ←/→ bewegen, Enter selecteer/deselecteer, R wissel, N nieuwe hand, S score bank, Q stop");
 
             var cards = this.CardsInHand.ToList();
             var selected = this.SelectedCards.ToList();
@@ -114,6 +114,12 @@ namespace KlasUitwerking
         public void HandleUserInput()
         {
             var key = Console.ReadKey(true);
+            // mostrar help bij '?' toets
+            if (key.KeyChar == '?')
+            {
+                ShowHelp();
+                return;
+            }
             if (key.Key == ConsoleKey.LeftArrow || key.Key == ConsoleKey.UpArrow)
             {
                 this.MoveCursorLeft();
@@ -133,6 +139,11 @@ namespace KlasUitwerking
             else if (key.Key == ConsoleKey.N)
             {
                 this.DealNewHand();
+            }
+            else if (key.Key == ConsoleKey.S)
+            {
+                // S to bank the current hand score into total score
+                this.BankHand();
             }
             else if (key.Key == ConsoleKey.Q)
             {
@@ -181,6 +192,58 @@ namespace KlasUitwerking
             }
         }
 
+        // Show a concise help/instructions screen explaining game rules and card behaviors
+        private void ShowHelp()
+        {
+            Console.Clear();
+            Console.WriteLine("Speluitleg - Balatro (korte handleiding):\n");
+            Console.WriteLine("Doel: bouw een zo hoog mogelijke handscore met de kaarten in je hand.");
+            Console.WriteLine("Bediening:");
+            Console.WriteLine(" - Gebruik ←/→ of ↑/↓ om te navigeren, Enter om kaarten te selecteren/deselecteren.");
+            Console.WriteLine(" - R of spatie: wissel geselecteerde kaarten (trek nieuwe van deck).");
+            Console.WriteLine(" - N: nieuwe hand (reset deck en deel opnieuw).");
+            Console.WriteLine(" - S: bankeer huidige handscore naar je totale score.");
+            Console.WriteLine(" - ?: toon deze help (nu).\n");
+
+            Console.WriteLine("Kaartsoorten en wat ze doen:");
+            Console.WriteLine(" - RegularCard: standaard kaart met basispunten gelijk aan de kaartwaarde (2..A).");
+            Console.WriteLine(" - BonusCard: geeft extra vaste bonuspunten (zie [B] in UI). GetBonusPoints() retourneert die bonus.");
+            Console.WriteLine("   Voorbeeld: BonusCard met +10 geeft altijd +10 bovenop zijn basispunten.");
+            Console.WriteLine(" - ExtraCard: geeft extra punten gebaseerd op andere kaarten in je hand (zie [E] in UI).\n   Implementatie: +X punten per andere kaart met dezelfde rank.");
+            Console.WriteLine(" - GlassCard: vermenigvuldigt de (deel)score met een multiplier (zie [G xN] in UI).\n   Let op: bij sommige acties kan een GlassCard breken en dan wordt hij permanent uit het deck verwijderd.");
+            Console.WriteLine("   In deze implementatie: glazen kaarten kunnen breken wanneer je geselecteerde kaarten wisselt; als ze breken verdwijnen ze.");
+            Console.WriteLine(" - Wildcard: heeft geen suit en telt als elke suit voor combinaties zoals Flush (zie [W] in UI). Geef zelf geen basispunten.");
+
+            Console.WriteLine("Scoreberekening (kort):");
+            Console.WriteLine(" - Handscore = som van basispunten (kaartwaarden) + bonuspunten (BonusCard) + context-bonussen (ExtraCard) + flush-bonus.");
+            Console.WriteLine(" - Als er één of meerdere GlassCards in de combinatie/hand zitten, wordt de score vermenigvuldigd met het product van hun multipliers.");
+            Console.WriteLine(" - Voor handen met >=5 kaarten wordt de beste 5-kaart combinatie gekozen (incl. bonussen en multipliers).");
+
+            Console.WriteLine("Voorbeeldinteracties:");
+            Console.WriteLine(" - Selecteer 2 kaarten en druk R om ze te wisselen; als een geselecteerde GlassCard breekt, verdwijnt hij permanent.");
+            Console.WriteLine(" - Druk S om je huidige handscore op te tellen bij je totaalscore en meteen een nieuwe hand te krijgen.");
+
+            Console.WriteLine("Druk een toets om terug te keren naar het spel...");
+            Console.ReadKey(true);
+            this.UpdateFromModel();
+        }
+
+        // Confirm and bank the current hand score into the player's total score.
+        public void BankHand()
+        {
+            int s = this.Model.PlayerHand.CalculateScore();
+            this.Model.TotalScore += s;
+            this.Status = $"Hand gescoord: {s} punten toegevoegd. Totale score: {this.Model.TotalScore}.";
+            // after banking, clear hand and draw a fresh hand
+            this.Model.PlayerHand = new PlayerHand(this.Model.PlayerHand.MaxCards);
+            while (this.Model.PlayerHand.CardsInHand.Count() < this.Model.PlayerHand.MaxCards)
+            {
+                var c = this.Model.Deck.TakeCard();
+                if (c == null) break;
+                this.Model.PlayerHand.AddCard(c);
+            }
+            this.UpdateFromModel();
+        }
 
         //actions
         public void SelectCard(int index)

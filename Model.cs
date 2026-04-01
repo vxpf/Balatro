@@ -8,6 +8,8 @@ namespace KlasUitwerking
     {
         public Deck Deck;
         public PlayerHand PlayerHand;
+        // totaal score van de speler; start op 0
+        public int TotalScore { get; set; } = 0;
 
         public Model(Deck deck, PlayerHand hand)
         {
