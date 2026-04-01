@@ -8,6 +8,7 @@ namespace KlasUitwerking
     class ViewModel
     {
         private Model Model;
+        private Random rng = new Random();
         private int DeckCardsTotal, DeckCardsRemaining = 0;
         private IEnumerable<Card> CardsInHand = new List<Card>();
         private IEnumerable<int> SelectedCards = new List<int>();
@@ -92,6 +93,15 @@ namespace KlasUitwerking
                 if (card is WildcardCard)
                 {
                     text += " [W]"; // eenvoudige markering voor wildcard
+                }
+                else if (card is GlassCard g)
+                {
+                    // markeer glazen kaart en toon multiplier
+                    text += $" [G x{g.Multiplier}]";
+                }
+                else if (card is ExtraCard)
+                {
+                    text += " [E]"; // ExtraCard marker
                 }
                 else if (card.GetBonusPoints() > 0)
                 {
@@ -182,6 +192,22 @@ namespace KlasUitwerking
         // Wissel geselecteerde kaarten: verwijder geselecteerde en vul hand aan vanuit deck
         public void ReplaceSelected()
         {
+            // Controleer geselecteerde kaarten op GlassCard breuk voordat we ze verwijderen.
+            var selectedCards = this.Model.PlayerHand.GetSelected();
+            foreach (var card in selectedCards)
+            {
+                if (card is GlassCard g)
+                {
+                    bool broken = g.TryBreak(this.rng);
+                    if (broken)
+                    {
+                        // Verwijder de gebroken kaart permanent uit het deck/taken lijsten
+                        this.Model.Deck.RemoveCard(card);
+                        this.Status = $"Glazen kaart gebroken: {card.MakeAsString()} weggegooid.";
+                    }
+                }
+            }
+
             // verwijder geselecteerde kaarten uit hand
             this.Model.PlayerHand.RemoveSelected();
 

@@ -48,5 +48,14 @@ namespace KlasUitwerking
         {
             return this.GetBasePoints() + this.GetBonusPoints();
         }
+
+        // Some special cards may need context-sensitive bonuses (e.g., ExtraCard
+        // gives points based on other cards in the hand). Provide a hook that
+        // callers (PlayerHand) can supply the current hand/context when
+        // computing the final score.
+        public virtual int GetAdditionalBonus(IEnumerable<Card> context)
+        {
+            return 0;
+        }
     }
 }

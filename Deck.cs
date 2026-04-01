@@ -67,6 +67,13 @@ namespace KlasUitwerking
         {
             this.CardsRemaining.Add(card);
         }
+        // Permanently remove a card from the deck (both remaining and taken).
+        public void RemoveCard(Card card)
+        {
+            if (card == null) return;
+            this.CardsRemaining.Remove(card);
+            this.CardsTaken.Remove(card);
+        }
         public virtual Card? TakeCard()
         {
             if (this.CardsRemaining.Count == 0)

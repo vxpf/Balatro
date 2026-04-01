@@ -89,16 +89,28 @@ namespace KlasUitwerking
                 foreach (var combo in GetCombinations(cards, 5))
                 {
                     int s = combo.Sum(c => c.GetScore());
+                    // add context-aware bonuses from cards like ExtraCard
+                    s += combo.Sum(c => c.GetAdditionalBonus(combo));
                     s += FlushChecker.GetFlushBonus(combo);
-                    if (s > best) best = s;
+                    // apply glass multipliers if any GlassCard present
+                    double multiplier = 1.0;
+                    foreach (var g in combo.OfType<GlassCard>())
+                    {
+                        multiplier *= g.Multiplier;
+                    }
+                    int final = (int)Math.Round(s * multiplier);
+                    if (final > best) best = final;
                 }
                 return best == int.MinValue ? 0 : best;
             }
 
             // otherwise sum all card scores and possible flush bonus
-            int total = cards.Sum(c => c.GetScore());
-            total += FlushChecker.GetFlushBonus(cards);
-            return total;
+            int baseTotal = cards.Sum(c => c.GetScore());
+            baseTotal += cards.Sum(c => c.GetAdditionalBonus(cards));
+            baseTotal += FlushChecker.GetFlushBonus(cards);
+            double multiplierTotal = 1.0;
+            foreach (var g in cards.OfType<GlassCard>()) multiplierTotal *= g.Multiplier;
+            return (int)Math.Round(baseTotal * multiplierTotal);
         }
 
         // helper: generate all k-combinations of a list
