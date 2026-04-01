@@ -91,6 +91,8 @@ namespace KlasUitwerking
                     int s = combo.Sum(c => c.GetScore());
                     // add context-aware bonuses from cards like ExtraCard
                     s += combo.Sum(c => c.GetAdditionalBonus(combo));
+                    // add pair bonuses
+                    s += PairChecker.GetPairBonus(combo);
                     s += FlushChecker.GetFlushBonus(combo);
                     // apply glass multipliers if any GlassCard present
                     double multiplier = 1.0;
@@ -108,6 +110,8 @@ namespace KlasUitwerking
             int baseTotal = cards.Sum(c => c.GetScore());
             baseTotal += cards.Sum(c => c.GetAdditionalBonus(cards));
             baseTotal += FlushChecker.GetFlushBonus(cards);
+            // add pair bonuses for whole hand
+            baseTotal += PairChecker.GetPairBonus(cards);
             double multiplierTotal = 1.0;
             foreach (var g in cards.OfType<GlassCard>()) multiplierTotal *= g.Multiplier;
             return (int)Math.Round(baseTotal * multiplierTotal);
