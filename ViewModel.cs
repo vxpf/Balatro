@@ -8,7 +8,8 @@ namespace KlasUitwerking
     class ViewModel
     {
         private Model Model;
-        private Random rng = new Random();
+        private GameEngine Engine;
+
         private int DeckCardsTotal, DeckCardsRemaining = 0;
         private IEnumerable<Card> CardsInHand = new List<Card>();
         private IEnumerable<int> SelectedCards = new List<int>();
@@ -26,6 +27,7 @@ namespace KlasUitwerking
         public ViewModel(Model model)
         {
             this.Model = model;
+            this.Engine = new GameEngine(model);
         }
 
         public void UpdateFromModel()
@@ -71,43 +73,77 @@ namespace KlasUitwerking
 
         public void RenderUI()
         {
+            // Simple, compact UI
             Console.Clear();
-            Console.WriteLine($"Deck: {this.DeckRemaining}/{this.DeckTotal}    Handscore: {this.Score}    Total: {this.Model.TotalScore}");
-            // toon status en wildcard telling
+            Console.WriteLine($"Deck: {this.DeckRemaining}/{this.DeckTotal}   Hand: {this.Score}   Total: {this.Model.TotalScore}");
             int wildInHand = this.CardsInHand.Count(c => c is WildcardCard);
             int wildInDeck = this.Model.Deck.CountWildcardsRemaining();
-            Console.WriteLine(this.StatusPublic + "    Wildcards hand:" + wildInHand + " Deck:" + wildInDeck);
-            Console.WriteLine("Controls: ←/→ bewegen, Enter selecteer/deselecteer, R wissel, N nieuwe hand, S score bank, Q stop");
+            Console.WriteLine($"Wildcards hand:{wildInHand}  deck:{wildInDeck}  selected:{this.SelectedCards.Count()}");
+            Console.WriteLine("Controls: ←/→  Enter select  R wissel  S bank  N new  ? help  Q quit");
+            Console.WriteLine();
 
             var cards = this.CardsInHand.ToList();
             var selected = this.SelectedCards.ToList();
-
             for (int i = 0; i < cards.Count; i++)
             {
-                // toon index (1-based) voor duidelijkheid
-                string idx = (i + 1).ToString().PadLeft(2, ' ');
-                string marker = (i == this.Cursor) ? ">" : " ";
-                string sel = selected.Contains(i) ? "[x]" : "[ ]";
                 var card = cards[i];
-                string text = card.MakeAsString();
-                if (card is WildcardCard)
-                {
-                    text += " [W]"; // eenvoudige markering voor wildcard
-                }
-                else if (card is GlassCard g)
-                {
-                    // markeer glazen kaart en toon multiplier
-                    text += $" [G x{g.Multiplier}]";
-                }
-                else if (card is ExtraCard)
-                {
-                    text += " [E]"; // ExtraCard marker
-                }
-                else if (card.GetBonusPoints() > 0)
-                {
-                    text += " [B]";
-                }
-                Console.WriteLine($"{idx} {marker}{sel} {text}");
+                bool isCursor = (i == this.Cursor);
+                bool isSelected = selected.Contains(i);
+                PrintCardLine(i, card, isSelected, isCursor);
+            }
+            Console.WriteLine();
+            Console.WriteLine(this.StatusPublic);
+        }
+
+        // Print a single card line with index, selection, cursor marker, colored suit and type markers
+        private void PrintCardLine(int index, Card card, bool selected, bool isCursor)
+        {
+            // index (1-based)
+            string idx = (index + 1).ToString().PadLeft(2, ' ');
+            string cursor = isCursor ? ">" : " ";
+            string sel = selected ? "[x]" : "[ ]";
+
+            // card text (wildcard shown as '*')
+            string cardText = card is WildcardCard ? "*" : card.MakeAsString();
+
+            // determine compact markers
+            string markers = "";
+            if (card is GlassCard) markers += " G";
+            if (card is ExtraCard) markers += " E";
+            if (card.GetBonusPoints() > 0) markers += " B";
+            if (card is WildcardCard) markers += " W";
+
+            // Print left part
+            // Color suit if applicable
+            Console.Write($"{idx} {cursor}{sel} ");
+            if (card is WildcardCard)
+            {
+                Console.Write(cardText);
+            }
+            else
+            {
+                var prev = Console.ForegroundColor;
+                Console.ForegroundColor = SuitColor(card.Suit);
+                Console.Write(cardText);
+                Console.ForegroundColor = prev;
+            }
+
+            // compact markers
+            Console.WriteLine(markers);
+        }
+
+        // map suit to console color
+        private ConsoleColor SuitColor(Suit s)
+        {
+            switch (s)
+            {
+                case Suit.Hearts:
+                case Suit.Diamonds:
+                    return ConsoleColor.Red;
+                case Suit.Spades:
+                case Suit.Clubs:
+                default:
+                    return ConsoleColor.White;
             }
         }
 
@@ -134,16 +170,20 @@ namespace KlasUitwerking
             }
             else if (key.Key == ConsoleKey.R || key.Key == ConsoleKey.Spacebar)
             {
-                this.ReplaceSelected();
+                // delegate to engine and display returned status
+                this.Status = this.Engine.ReplaceSelectedCards();
+                this.UpdateFromModel();
             }
             else if (key.Key == ConsoleKey.N)
             {
-                this.DealNewHand();
+                this.Engine.DealNewHand();
+                this.Status = "Nieuwe hand gedeeld.";
+                this.UpdateFromModel();
             }
             else if (key.Key == ConsoleKey.S)
             {
-                // S to bank the current hand score into total score
-                this.BankHand();
+                this.Status = this.Engine.BankCurrentHand();
+                this.UpdateFromModel();
             }
             else if (key.Key == ConsoleKey.Q)
             {
@@ -228,22 +268,7 @@ namespace KlasUitwerking
             this.UpdateFromModel();
         }
 
-        // Confirm and bank the current hand score into the player's total score.
-        public void BankHand()
-        {
-            int s = this.Model.PlayerHand.CalculateScore();
-            this.Model.TotalScore += s;
-            this.Status = $"Hand gescoord: {s} punten toegevoegd. Totale score: {this.Model.TotalScore}.";
-            // after banking, clear hand and draw a fresh hand
-            this.Model.PlayerHand = new PlayerHand(this.Model.PlayerHand.MaxCards);
-            while (this.Model.PlayerHand.CardsInHand.Count() < this.Model.PlayerHand.MaxCards)
-            {
-                var c = this.Model.Deck.TakeCard();
-                if (c == null) break;
-                this.Model.PlayerHand.AddCard(c);
-            }
-            this.UpdateFromModel();
-        }
+        // BankHand moved to Model.BankCurrentHand(); ViewModel only delegates.
 
         //actions
         public void SelectCard(int index)
@@ -252,57 +277,6 @@ namespace KlasUitwerking
             this.UpdateFromModel();
         }
 
-        // Wissel geselecteerde kaarten: verwijder geselecteerde en vul hand aan vanuit deck
-        public void ReplaceSelected()
-        {
-            // Controleer geselecteerde kaarten op GlassCard breuk voordat we ze verwijderen.
-            var selectedCards = this.Model.PlayerHand.GetSelected();
-            foreach (var card in selectedCards)
-            {
-                if (card is GlassCard g)
-                {
-                    bool broken = g.TryBreak(this.rng);
-                    if (broken)
-                    {
-                        // Verwijder de gebroken kaart permanent uit het deck/taken lijsten
-                        this.Model.Deck.RemoveCard(card);
-                        this.Status = $"Glazen kaart gebroken: {card.MakeAsString()} weggegooid.";
-                    }
-                }
-            }
-
-            // verwijder geselecteerde kaarten uit hand
-            this.Model.PlayerHand.RemoveSelected();
-
-            this.Status = "Geselecteerde kaarten gewisseld.";
-
-            // trek kaarten totdat hand weer vol is of deck leeg
-            while (this.Model.PlayerHand.CardsInHand.Count() < this.Model.PlayerHand.MaxCards)
-            {
-                var drawn = this.Model.Deck.TakeCard();
-                if (drawn == null) break;
-                this.Model.PlayerHand.AddCard(drawn);
-            }
-
-            this.UpdateFromModel();
-        }
-
-        // request to start a new hand: reset deck, shuffle and deal
-        public void DealNewHand()
-        {
-            this.Model.Deck.Reset();
-            this.Model.Deck.Shuffle();
-
-            // clear current hand and deal
-            this.Model.PlayerHand = new PlayerHand(this.Model.PlayerHand.MaxCards);
-            for (int i = 0; i < this.Model.PlayerHand.MaxCards; i++)
-            {
-                var c = this.Model.Deck.TakeCard();
-                if (c == null) break;
-                this.Model.PlayerHand.AddCard(c);
-            }
-
-            this.UpdateFromModel();
-        }
+        // ReplaceSelected/DealNewHand logic moved to Model; ViewModel delegates to Model methods.
     }
 }

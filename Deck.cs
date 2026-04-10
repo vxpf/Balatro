@@ -25,30 +25,36 @@ namespace KlasUitwerking
             this.CardsRemaining = new List<Card>();
             this.CardsTaken = new List<Card>();
 
-            // maak een random generator: 5% kans op Wildcard, 10% kans op BonusCard
-            var rng = new Random();
             // expliciete lijst van de vier geldige suits — voorkomt Suit.None in deck
             var suits = new[] { Suit.Clubs, Suit.Diamonds, Suit.Hearts, Suit.Spades };
+
+            // We will ensure exactly one BonusCard, one GlassCard and one Wildcard in the deck.
+            // Generate three distinct indices in the range of total cards.
+            var values = Enum.GetValues(typeof(CardValue));
+            int totalCards = suits.Length * values.Length;
+            var rng = new Random();
+            int bonusIndex = rng.Next(totalCards);
+            int glassIndex;
+            do { glassIndex = rng.Next(totalCards); } while (glassIndex == bonusIndex);
+            int wildcardIndex;
+            do { wildcardIndex = rng.Next(totalCards); } while (wildcardIndex == bonusIndex || wildcardIndex == glassIndex);
+
+            int idx = 0;
             foreach (Suit suit in suits)
             {
-                foreach (CardValue value in Enum.GetValues(typeof(CardValue)))
+                foreach (CardValue value in values)
                 {
                     Card card;
-                    // bepaal type met één random getal (exclusieve kansen)
-                    double rnd = rng.NextDouble();
-                    if (rnd < 0.05)
+                    if (idx == wildcardIndex)
                     {
-                        // 5% kans op wildcard (vervangt deze kaartpositie)
                         card = new WildcardCard();
                     }
-                    else if (rnd < 0.15)
+                    else if (idx == bonusIndex)
                     {
-                        // volgende 10% kans op bonus
                         card = new BonusCard(value, suit, 10);
                     }
-                    else if (rnd < 0.20)
+                    else if (idx == glassIndex)
                     {
-                        // volgende 5% kans op glazen kaart
                         card = new GlassCard(value, suit, multiplier: 2.0, breakChance: 0.2);
                     }
                     else
@@ -59,6 +65,7 @@ namespace KlasUitwerking
                     this.CardsRemaining.Add(card);
                     // gebruik MakeAsString zodat speciale kaarten correct getoond worden
                     Console.WriteLine(card.MakeAsString());
+                    idx++;
                 }
             }
         }

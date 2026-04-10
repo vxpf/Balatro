@@ -76,7 +76,7 @@ Repository
 https://github.com/vxpf/Balatro
 
 Ontwikkelaar
-Naam: vul hier jouw naam in
+Naam: Jailon Biserta
 Opleiding: ICT
 Project: Balatro schoolproject
 
