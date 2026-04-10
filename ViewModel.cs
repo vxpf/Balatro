@@ -15,7 +15,7 @@ namespace KlasUitwerking
         private IEnumerable<int> SelectedCards = new List<int>();
         public int Cursor { get; private set; } = 0;
 
-        // view-facing properties
+        // View properties
         public int DeckTotal => this.DeckCardsTotal;
         public int DeckRemaining => this.DeckCardsRemaining;
         public int Score => this.Model.PlayerHand.CalculateScore();
@@ -36,7 +36,7 @@ namespace KlasUitwerking
             this.DeckCardsRemaining = this.Model.Deck.CardsRemainingCount;
             this.CardsInHand = this.Model.PlayerHand.CardsInHand;
             this.SelectedCards = this.Model.PlayerHand.SelectedCards;
-            // Ensure cursor remains within range
+            // Houd cursor binnen bereik
             int count = this.CardsInHand.Count();
             if (count == 0)
             {
@@ -56,11 +56,11 @@ namespace KlasUitwerking
                 this.Model.PlayerHand.AddCard(drawn);
             }
 
-            // refresh local view of hand/count after fill
+            // Ververs lokale view na aanvullen
             this.CardsInHand = this.Model.PlayerHand.CardsInHand;
             this.SelectedCards = this.Model.PlayerHand.SelectedCards;
         }
-        // Simple console view integrated in ViewModel (teacher prefers ViewModel-only)
+        // Console view geïntegreerd in ViewModel
         public void Run()
         {
             this.Running = true;
@@ -73,7 +73,7 @@ namespace KlasUitwerking
 
         public void RenderUI()
         {
-            // Simple, compact UI
+            // Compacte UI
             Console.Clear();
             Console.WriteLine($"Deck: {this.DeckRemaining}/{this.DeckTotal}   Hand: {this.Score}   Total: {this.Model.TotalScore}");
             int wildInHand = this.CardsInHand.Count(c => c is WildcardCard);
@@ -95,26 +95,25 @@ namespace KlasUitwerking
             Console.WriteLine(this.StatusPublic);
         }
 
-        // Print a single card line with index, selection, cursor marker, colored suit and type markers
+        // Print kaartlijn met index, selectie, cursor en type markers
         private void PrintCardLine(int index, Card card, bool selected, bool isCursor)
         {
-            // index (1-based)
+            // Index (1-gebaseerd)
             string idx = (index + 1).ToString().PadLeft(2, ' ');
             string cursor = isCursor ? ">" : " ";
             string sel = selected ? "[x]" : "[ ]";
 
-            // card text (wildcard shown as '*')
+            // Kaarttekst (wildcard als '*')
             string cardText = card is WildcardCard ? "*" : card.MakeAsString();
 
-            // determine compact markers
+            // Bepaal compacte markers
             string markers = "";
-            if (card is GlassCard) markers += " G";
-            if (card is ExtraCard) markers += " E";
-            if (card.GetBonusPoints() > 0) markers += " B";
-            if (card is WildcardCard) markers += " W";
+            if (card is GlassCard) markers += " G"; // Glas kaart
+            if (card is ExtraCard) markers += " E"; // Extra kaart
+            if (card.GetBonusPoints() > 0) markers += " B"; // Bonuspunten
+            if (card is WildcardCard) markers += " W"; // Wildcard
 
-            // Print left part
-            // Color suit if applicable
+            // Print kaart met gekleurde suit
             Console.Write($"{idx} {cursor}{sel} ");
             if (card is WildcardCard)
             {
@@ -128,11 +127,11 @@ namespace KlasUitwerking
                 Console.ForegroundColor = prev;
             }
 
-            // compact markers
+            // Compacte markers
             Console.WriteLine(markers);
         }
 
-        // map suit to console color
+        // Map suit naar console kleur
         private ConsoleColor SuitColor(Suit s)
         {
             switch (s)
@@ -150,7 +149,7 @@ namespace KlasUitwerking
         public void HandleUserInput()
         {
             var key = Console.ReadKey(true);
-            // mostrar help bij '?' toets
+            // Toon help bij '?' toets
             if (key.KeyChar == '?')
             {
                 ShowHelp();
@@ -170,7 +169,7 @@ namespace KlasUitwerking
             }
             else if (key.Key == ConsoleKey.R || key.Key == ConsoleKey.Spacebar)
             {
-                // delegate to engine and display returned status
+                // Delegeer naar engine en toon status
                 this.Status = this.Engine.ReplaceSelectedCards();
                 this.UpdateFromModel();
             }
@@ -197,7 +196,7 @@ namespace KlasUitwerking
             }
         }
 
-        // View-agnostic control methods
+        // Besturingsmethodes
         public void MoveCursorLeft()
         {
             if (this.CardsInHand.Any())
@@ -232,7 +231,7 @@ namespace KlasUitwerking
             }
         }
 
-        // Show a concise help/instructions screen explaining game rules and card behaviors
+        // Toon help scherm met spelregels en kaartgedrag
         private void ShowHelp()
         {
             Console.Clear();
@@ -268,15 +267,12 @@ namespace KlasUitwerking
             this.UpdateFromModel();
         }
 
-        // BankHand moved to Model.BankCurrentHand(); ViewModel only delegates.
 
-        //actions
         public void SelectCard(int index)
         {
             this.Model.PlayerHand.SelectCard(index);
             this.UpdateFromModel();
         }
 
-        // ReplaceSelected/DealNewHand logic moved to Model; ViewModel delegates to Model methods.
     }
 }

@@ -9,7 +9,6 @@ namespace KlasUitwerking
     {
         private List<Card> CardsRemaining;
         private List<Card> CardsTaken;
-        //new
         public virtual int TotalCardCount
         {
             get
@@ -19,17 +18,13 @@ namespace KlasUitwerking
         }
 
         public virtual int CardsRemainingCount => this.CardsRemaining.Count;
-        //oud
         public Deck()
         {
             this.CardsRemaining = new List<Card>();
             this.CardsTaken = new List<Card>();
 
-            // expliciete lijst van de vier geldige suits — voorkomt Suit.None in deck
             var suits = new[] { Suit.Clubs, Suit.Diamonds, Suit.Hearts, Suit.Spades };
 
-            // We will ensure exactly one BonusCard, one GlassCard and one Wildcard in the deck.
-            // Generate three distinct indices in the range of total cards.
             var values = Enum.GetValues(typeof(CardValue));
             int totalCards = suits.Length * values.Length;
             var rng = new Random();
@@ -63,7 +58,7 @@ namespace KlasUitwerking
                     }
 
                     this.CardsRemaining.Add(card);
-                    // gebruik MakeAsString zodat speciale kaarten correct getoond worden
+                    // Gebruik MakeAsString voor correcte weergave speciale kaarten
                     Console.WriteLine(card.MakeAsString());
                     idx++;
                 }
@@ -74,7 +69,7 @@ namespace KlasUitwerking
         {
             this.CardsRemaining.Add(card);
         }
-        // Permanently remove a card from the deck (both remaining and taken).
+        // Verwijder kaart permanent uit deck (remaining en taken)
         public void RemoveCard(Card card)
         {
             if (card == null) return;
@@ -103,7 +98,7 @@ namespace KlasUitwerking
             this.CardsTaken = new List<Card>();
         }
 
-        // Count wildcards remaining in the deck
+        // Tel wildcards in deck
         public int CountWildcardsRemaining()
         {
             return this.CardsRemaining.Count(c => c is WildcardCard);

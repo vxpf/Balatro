@@ -19,13 +19,13 @@ namespace KlasUitwerking
             Console.WriteLine(this.Value);
         }
 
-        // representatie als string; kan overschreven worden door afgeleide kaarten
+        // String representatie; kan overschreven worden door afgeleide kaarten
         public virtual string MakeAsString()
         {
             return $"{RankString()}{SuitSymbol()}";
         }
 
-        // helper: toon de suit als symbool (♣ ♦ ♥ ♠), of leeg voor None
+        // Toon suit als symbool (♣ ♦ ♥ ♠), of leeg voor None
         protected string SuitSymbol()
         {
             switch (this.Suit)
@@ -38,7 +38,7 @@ namespace KlasUitwerking
             }
         }
 
-        // helper: korte rank-naam (2..10, J, Q, K, A)
+        // Korte rank-naam (2..10, J, Q, K, A)
         protected string RankString()
         {
             switch (this.Value)
@@ -60,7 +60,7 @@ namespace KlasUitwerking
             }
         }
 
-        // Geef aan of deze kaart bij een bepaalde suit past (wildcard past altijd)
+        // Check of kaart bij een suit past (wildcard past altijd)
         public virtual bool MatchesSuit(Suit s)
         {
             return this.Suit == s;
@@ -72,22 +72,19 @@ namespace KlasUitwerking
             return 0;
         }
 
-        // Basis punten voor de kaart (kan overschreven worden voor speciale kaarten)
+        // Basispunten van de kaart (kan overschreven worden)
         public virtual int GetBasePoints()
         {
             return (int)this.Value;
         }
 
-        // Totale score van de kaart: basispunten + eventuele bonuspunten
+        // Totale score: basispunten + bonuspunten
         public virtual int GetScore()
         {
             return this.GetBasePoints() + this.GetBonusPoints();
         }
 
-        // Some special cards may need context-sensitive bonuses (e.g., ExtraCard
-        // gives points based on other cards in the hand). Provide a hook that
-        // callers (PlayerHand) can supply the current hand/context when
-        // computing the final score.
+        // Bonus afhankelijk van context
         public virtual int GetAdditionalBonus(IEnumerable<Card> context)
         {
             return 0;

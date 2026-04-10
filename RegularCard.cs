@@ -4,7 +4,7 @@ using System.Text;
 
 namespace KlasUitwerking
 {
-    // Concrete regular card because Card is abstract now
+    // Standaard kaart (Card is abstract)
     class RegularCard : Card
     {
         public RegularCard(CardValue value, Suit suit)

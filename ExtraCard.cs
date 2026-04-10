@@ -22,8 +22,7 @@ namespace KlasUitwerking
             return $"Extra {RankString()}{SuitSymbol()} +{this.pointsPerMatch}/match";
         }
 
-        // Context-aware bonus: telt het aantal andere kaarten in the hand with
-        // dezelfde CardValue en geeft pointsPerMatch per match.
+        // Context-bonus: tel andere kaarten met dezelfde rank en geef pointsPerMatch per match
         public override int GetAdditionalBonus(IEnumerable<Card> context)
         {
             if (context == null) return 0;

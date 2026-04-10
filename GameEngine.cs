@@ -4,8 +4,7 @@ using System.Linq;
 
 namespace KlasUitwerking
 {
-    // GameEngine contains all game logic and manipulates the Model (deck/hand/score).
-    // This keeps business rules out of the ViewModel and centralizes RNG and rule changes.
+    // GameEngine bevat alle spellogica en manipuleert het Model (deck/hand/score)
     class GameEngine
     {
         private readonly Model model;
@@ -17,8 +16,7 @@ namespace KlasUitwerking
             this.rng = rng ?? new Random();
         }
 
-        // Replace selected cards: handle GlassCard breakage, remove broken cards from deck,
-        // remove selected from hand and refill from deck. Returns a status message.
+        // Vervang geselecteerde kaarten: behandel GlassCard breuk, verwijder uit deck, vul hand aan
         public string ReplaceSelectedCards()
         {
             var selected = this.model.PlayerHand.GetSelected();
@@ -36,12 +34,12 @@ namespace KlasUitwerking
                 }
             }
 
-            // verwijder geselecteerde kaarten uit hand
+            // Verwijder geselecteerde kaarten uit hand
             this.model.PlayerHand.RemoveSelected();
 
             status += "Geselecteerde kaarten gewisseld.";
 
-            // vul hand aan vanuit deck
+            // Vul hand aan vanuit deck
             while (this.model.PlayerHand.CardsInHand.Count() < this.model.PlayerHand.MaxCards)
             {
                 var drawn = this.model.Deck.TakeCard();
@@ -52,14 +50,14 @@ namespace KlasUitwerking
             return status;
         }
 
-        // Bank the current hand score into total score and deal a fresh hand. Returns status.
+        // Voeg handscore toe aan totale score en deel nieuwe hand
         public string BankCurrentHand()
         {
             int s = this.model.PlayerHand.CalculateScore();
             this.model.TotalScore += s;
             string status = $"Hand gescoord: {s} punten toegevoegd. Totale score: {this.model.TotalScore}.";
 
-            // clear current hand and deal
+            // Maak hand leeg en deel nieuwe kaarten
             this.model.PlayerHand = new PlayerHand(this.model.PlayerHand.MaxCards);
             while (this.model.PlayerHand.CardsInHand.Count() < this.model.PlayerHand.MaxCards)
             {
@@ -71,7 +69,7 @@ namespace KlasUitwerking
             return status;
         }
 
-        // Reset deck, shuffle and deal a fresh hand
+        // Reset deck, schud en deel nieuwe hand
         public void DealNewHand()
         {
             this.model.Deck.Reset();

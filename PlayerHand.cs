@@ -29,13 +29,13 @@ namespace KlasUitwerking
 
         public void SelectCard(int index)
         {
-            // validate index
+            // Valideer index
             if (index < 0 || index >= this.Hand.Count)
             {
                 return;
             }
 
-            // add if not already selected
+            // Voeg toe als nog niet geselecteerd
             if (!this.SelectedIndexes.Contains(index))
             {
                 this.SelectedIndexes.Add(index);
@@ -78,10 +78,10 @@ namespace KlasUitwerking
             this.SelectedIndexes.Clear();
         }
 
-        // Calculate total hand score: sum of card values plus any bonus points
+        // Bereken totale handscore: som van kaartwaarden plus bonuspunten
         public int CalculateScore()
         {
-            // if we have at least 5 cards, evaluate all 5-card combinations and return the best score
+            // Bij 5+ kaarten: evalueer alle 5-kaart combinaties en geef beste score
             var cards = this.Hand.ToList();
             if (cards.Count >= 5)
             {
@@ -89,12 +89,12 @@ namespace KlasUitwerking
                 foreach (var combo in GetCombinations(cards, 5))
                 {
                     int s = combo.Sum(c => c.GetScore());
-                    // add context-aware bonuses from cards like ExtraCard
+                    // Voeg context-bonussen toe (bijv. ExtraCard)
                     s += combo.Sum(c => c.GetAdditionalBonus(combo));
-                    // add pair bonuses
+                    // Voeg pair bonussen toe
                     s += PairChecker.GetPairBonus(combo);
                     s += FlushChecker.GetFlushBonus(combo);
-                    // apply glass multipliers if any GlassCard present
+                    // Pas glass multipliers toe indien aanwezig
                     double multiplier = 1.0;
                     foreach (var g in combo.OfType<GlassCard>())
                     {
@@ -106,18 +106,18 @@ namespace KlasUitwerking
                 return best == int.MinValue ? 0 : best;
             }
 
-            // otherwise sum all card scores and possible flush bonus
+            // Anders: som alle kaartscores en mogelijke flush bonus
             int baseTotal = cards.Sum(c => c.GetScore());
             baseTotal += cards.Sum(c => c.GetAdditionalBonus(cards));
             baseTotal += FlushChecker.GetFlushBonus(cards);
-            // add pair bonuses for whole hand
+            // Voeg pair bonussen toe voor hele hand
             baseTotal += PairChecker.GetPairBonus(cards);
             double multiplierTotal = 1.0;
             foreach (var g in cards.OfType<GlassCard>()) multiplierTotal *= g.Multiplier;
             return (int)Math.Round(baseTotal * multiplierTotal);
         }
 
-        // helper: generate all k-combinations of a list
+        // Genereer alle k-combinaties van een lijst
         private static IEnumerable<List<Card>> GetCombinations(List<Card> list, int k)
         {
             int n = list.Count;

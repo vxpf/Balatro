@@ -12,7 +12,7 @@ namespace KlasUitwerking
     class WildcardCard : Card
     {
         public WildcardCard()
-            : base(CardValue.Two, Suit.None) // wildcard heeft geen echte suit
+            : base(CardValue.Two, Suit.None)
         {
         }
 
@@ -33,7 +33,7 @@ namespace KlasUitwerking
 
         public override bool MatchesSuit(Suit s)
         {
-            return true; // wildcard past altijd bij elke suit
+            return true;
         }
     }
 }

@@ -15,12 +15,11 @@ namespace KlasUitwerking
             var list = hand.ToList();
             if (list.Count == 0) return 0;
 
-            // Treat WildcardCard as matching any suit: if card is WildcardCard, ignore its suit
-            // gebruik MatchesSuit zodat wildcard-regel centraal blijft
+            // Wildcard past bij elke suit; gebruik MatchesSuit voor centrale wildcard-regel
             var nonWild = list.Where(c => !(c is WildcardCard)).ToList();
             if (nonWild.Count == 0)
             {
-                return 50; // alleen wildcards
+                return 50;
             }
 
             var target = nonWild.First().Suit;
