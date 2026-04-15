@@ -58,8 +58,6 @@ namespace KlasUitwerking
                     }
 
                     this.CardsRemaining.Add(card);
-                    // Gebruik MakeAsString voor correcte weergave speciale kaarten
-                    Console.WriteLine(card.MakeAsString());
                     idx++;
                 }
             }

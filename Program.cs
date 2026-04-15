@@ -28,8 +28,9 @@ namespace KlasUitwerking
             ViewModel viewModel = new ViewModel(model);
             viewModel.UpdateFromModel();
 
-            // start the ViewModel which now handles console I/O
-            viewModel.Run();
+            // Create ConsoleView which handles all UI rendering and input
+            ConsoleView view = new ConsoleView(viewModel);
+            view.Run();
         }
     }
 }
